@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#5b4bdb">
+  <title>価値観ゲーム</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <p class="eyebrow">みんなの感覚を合わせよう</p>
+      <h1>価値観ゲーム</h1>
+      <div id="progress" class="progress hidden" aria-live="polite"></div>
+    </header>
+
+    <section id="modeScreen" class="panel">
+      <h2>遊ぶモードを選ぶ</h2>
+      <p class="lead">最初に、遊び方を選んでください。</p>
+      <div class="mode-grid">
+        <button class="mode-card" data-mode="normal">
+          <span class="mode-icon">🎯</span>
+          <strong>ノーマルモード</strong>
+          <small>数字の順番を、会話だけでそろえる</small>
+        </button>
+        <button class="mode-card wolf" data-mode="wolf">
+          <span class="mode-icon">🐺</span>
+          <strong>人狼モード</strong>
+          <small>人狼の妨害を見抜き、正しい順番を完成させる</small>
+        </button>
+      </div>
+      <details class="rules-box">
+        <summary>遊び方を見る</summary>
+        <div id="modeRuleText"></div>
+      </details>
+    </section>
+
+    <section id="setupScreen" class="panel hidden">
+      <button class="text-button back-to-mode" type="button">← モード選択へ</button>
+      <span id="selectedModeBadge" class="badge"></span>
+      <h2>ゲームの準備</h2>
+
+      <label for="numPlayers">プレイヤー人数</label>
+      <div class="stepper">
+        <button id="decreasePlayers" type="button" aria-label="人数を1人減らす">−</button>
+        <input type="number" id="numPlayers" min="3" max="8" value="4" inputmode="numeric">
+        <button id="increasePlayers" type="button" aria-label="人数を1人増やす">＋</button>
+      </div>
+      <p id="playerLimitHelp" class="help"></p>
+
+      <fieldset>
+        <legend>プレイヤー名</legend>
+        <div id="nameInputs" class="name-grid"></div>
+      </fieldset>
+
+      <label for="themeInput">テーマ <span class="optional">（空欄ならランダム）</span></label>
+      <div class="theme-row">
+        <input type="text" id="themeInput" maxlength="40" placeholder="例：無人島に持っていくもの">
+        <button id="randomThemeBtn" class="secondary small" type="button">おまかせ</button>
+      </div>
+
+      <button id="startBtn" class="primary wide" type="button">ゲーム開始</button>
+      <p id="setupError" class="error" role="alert"></p>
+    </section>
+
+    <section id="themeScreen" class="panel hidden">
+      <p class="eyebrow">今回のテーマ</p>
+      <h2 id="themeDisplay" class="theme-display"></h2>
+      <div class="scale-guide">
+        <span><b>1</b> あまり当てはまらない</span>
+        <span><b>100</b> とても当てはまる</span>
+      </div>
+      <p id="wolfThemeNotice" class="notice hidden">全員に数字が配られます。人狼は正体を隠し、並べ替えの失敗を狙います。</p>
+      <button id="toPlayerBtn" class="primary wide" type="button">個人カードの確認へ</button>
+    </section>
+
+    <section id="handoffScreen" class="panel secret-screen hidden">
+      <p id="handoffCount" class="eyebrow"></p>
+      <h2 id="handoffTitle"></h2>
+      <div class="phone-card">📱</div>
+      <p>ほかの人に画面を見せず、端末を渡してください。</p>
+      <button id="readyBtn" class="primary wide" type="button">本人です。カードを見る</button>
+    </section>
+
+    <section id="secretScreen" class="panel secret-screen hidden">
+      <p id="secretPlayerName" class="eyebrow"></p>
+      <div id="numberCard" class="number-card" aria-live="polite"></div>
+      <p id="secretHint" class="lead"></p>
+      <button id="hideAndNextBtn" class="primary wide" type="button">カードを隠して次へ</button>
+    </section>
+
+    <section id="gameScreen" class="panel hidden">
+      <span id="gameModeBadge" class="badge"></span>
+      <h2 id="gameTheme"></h2>
+      <p>数字を直接言わず、テーマに合う答えを発表しましょう。</p>
+      <div class="order-guide"><span>大きい数字</span><b>100 ↑</b></div>
+      <ol id="sortable" class="sortable" aria-label="予想した並び順"></ol>
+      <div class="order-guide bottom"><b>↓ 1</b><span>小さい数字</span></div>
+      <p class="help">カードをドラッグ、または ▲ ▼ ボタンで移動できます。</p>
+      <button id="toVoteBtn" class="primary wide hidden" type="button">並び順を決定して投票へ</button>
+      <button id="submitOrderBtn" class="primary wide" type="button">この順で決定</button>
+      <button class="secondary wide restart-button" type="button">最初からやり直す</button>
+    </section>
+
+    <section id="voteScreen" class="panel hidden">
+      <span class="badge wolf-badge">🐺 人狼モード</span>
+      <h2>人狼は誰だと思う？</h2>
+      <p>相談して、並べ替えを失敗させようとしたと思う1人を選んでください。</p>
+      <div id="voteChoices" class="vote-grid"></div>
+      <button id="submitVoteBtn" class="primary wide" type="button" disabled>この人に投票する</button>
+    </section>
+
+    <section id="resultScreen" class="panel hidden">
+      <p class="eyebrow">結果発表</p>
+      <h2 id="resultHeadline"></h2>
+      <div id="wolfResult" class="wolf-result hidden"></div>
+      <div id="scoreSummary" class="score-summary"></div>
+      <div class="result-columns">
+        <div><h3>みんなの予想</h3><ol id="guessedList" class="result-list"></ol></div>
+        <div><h3>数字の正解</h3><ol id="correctList" class="result-list correct"></ol></div>
+      </div>
+      <button id="sameSettingsBtn" class="primary wide" type="button">同じメンバーでもう一度</button>
+      <button class="secondary wide back-to-mode" type="button">モード選択へ戻る</button>
+    </section>
+  </main>
+
+  <div id="confirmDialog" class="dialog-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <div class="dialog">
+      <h2 id="dialogTitle">最初からやり直しますか？</h2>
+      <p>現在のゲーム内容は消えます。</p>
+      <div class="dialog-actions">
+        <button id="cancelRestartBtn" class="secondary" type="button">続ける</button>
+        <button id="confirmRestartBtn" class="danger" type="button">やり直す</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
